@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd 
+		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<context:annotation-config></context:annotation-config>
+	<context:component-scan
+		base-package="com.aplose"></context:component-scan>
+	<jdbc:embedded-database id="dataSource"
+		type="H2">
+		<jdbc:script location="classpath:schema.sql" />
+		<jdbc:script location="classpath:test-data.sql" />
+	</jdbc:embedded-database>
+
+	<bean id="iMessageService"
+		class="com.aplose.spring.hello.MessageService">
+		<!-- <property name=""></property> -->
+	</bean>
+	<bean id="messagePrinter"
+		class="com.aplose.spring.testSpring.MessagePrinter">
+		<constructor-arg ref="iMessageService"></constructor-arg>
+	</bean>
+	<bean id="app" class="com.aplose.spring.testSpring.App"></bean>
+	<bean id="app2" class="com.aplose.spring.app.MyApp">
+		<property name="users">
+			<list>
+				<ref bean="admin"></ref>
+			</list>
+		</property>
+	</bean>
+	<bean id="admin" class="com.aplose.spring.app.User">
+		<property name="firstName" value="Julie"></property>
+		<property name="lastName" value="Lefebvre"></property>
+		<property name="login" value="admin"></property>
+		<property name="pwd" value="admin"></property>
+	</bean>
+	<!-- le scope="" par defaut sera un singleton -->
+	<!-- scope="prototype" quand on souhaite une instance créer un objet -->
+	<bean id="dependency" class="com.aplose.spring.app.Dependency"
+		scope="prototype">
+	</bean>
+	<bean id="constructorInjection"
+		class="com.aplose.spring.app.ConstructorInjection">
+		<constructor-arg ref="dependency"></constructor-arg>
+	</bean>
+	<bean id="setterInjection"
+		class="com.aplose.spring.app.SetterInjection">
+		<property name="dependency" ref="dependency"></property>
+	</bean>
+	<bean id="autoWireInjection"
+		class="com.aplose.spring.app.AutoWireInjection" autowire="byName"></bean>
+	<bean id="setterInjectionFille"
+		class="com.aplose.spring.app.SetterInjectionFille"
+		parent="setterInjection">
+		<property name="name" value="Julie"></property>
+	</bean>
+	<bean id="springAware" class="com.aplose.spring.app.SpringAware"></bean>
+	<bean id="transactionManager"
+		class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="entityManagerFactory" ref="emf" />
+	</bean>
+	<tx:annotation-driven
+		transaction-manager="transactionManager" />
+	<bean id="emf"
+		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="jpaVendorAdapter">
+			<bean
+				class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+				<property name="generateDdl" value="true" />
+			</bean>
+		</property>
+		<property name="packagesToScan"
+			value="com.aplose.smooss" />
+		<property name="jpaProperties">
+			<props>
+				<prop key="hibernate.generateDdl">true</prop>
+				<prop key="hibernate.dialect">
+					org.hibernate.dialect.H2Dialect
+				</prop>
+				<prop key="hibernate.max_fetch_depth">3</prop>
+				<prop key="hibernate.jdbc.fetch_size">50</prop>
+				<prop key="hibernate.jdbc.batch_size">10</prop>
+				<prop key="hibernate.show_sql">true</prop>
+			</props>
+		</property>
+	</bean>
+</beans>
